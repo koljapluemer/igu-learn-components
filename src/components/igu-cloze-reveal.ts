@@ -1,0 +1,245 @@
+import { LitElement, html, css } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
+import { theme } from '../styles/theme';
+import { selectRandom } from '../utils/random';
+
+interface ClozeEvent {
+  type: 'reveal' | 'rating';
+  rating?: 'wrong' | 'hard' | 'good' | 'easy';
+  clozedTexts: string[];
+  clozedIndices: number[];
+  timeToReveal?: number;
+}
+
+@customElement('igu-cloze-reveal')
+export class IguClozeReveal extends LitElement {
+  static styles = [
+    theme,
+    css`
+      :host {
+        display: block;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 1rem;
+      }
+
+      .card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .cloze-text {
+        font-size: 1.1rem;
+        line-height: 1.5;
+        margin: 1rem 0;
+      }
+
+      .gap {
+        display: inline-block;
+        min-width: 2em;
+        text-align: center;
+        border-bottom: 2px solid var(--color-primary);
+        margin: 0 0.2em;
+      }
+
+      .revealed-gap {
+        background-color: var(--color-primary-light, #e3f2fd);
+        padding: 0.1em 0.3em;
+        border-radius: 3px;
+        font-weight: bold;
+      }
+
+      .buttons {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        margin-top: 1rem;
+      }
+
+      button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.2s;
+      }
+
+      button.primary {
+        background-color: var(--color-primary);
+        color: white;
+      }
+
+      button.rating {
+        background-color: var(--color-secondary);
+        color: white;
+      }
+
+      button:hover {
+        opacity: 0.9;
+      }
+
+      button:focus {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+      }
+    `
+  ];
+
+  @property({ type: Number }) numClozes = 1;
+  @property({ type: Number }) seed?: number;
+  @property({ type: Boolean }) isRevealed = false;
+
+  @state() private clozedIndices: number[] = [];
+  @state() private clozedTexts: string[] = [];
+  @state() private startTime = Date.now();
+
+  private handleClozeSlotChange = () => {
+    const slot = this.shadowRoot?.querySelector('slot[name="cloze"]') as HTMLSlotElement;
+    if (!slot) return;
+    const assignedNodes = slot.assignedNodes({ flatten: true });
+    // Find all elements with data-is-gap
+    const gapElements: Element[] = [];
+    const walker = (node: Node) => {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const el = node as Element;
+        if (el.hasAttribute('data-is-gap')) {
+          gapElements.push(el);
+        }
+        el.childNodes.forEach(walker);
+      }
+    };
+    assignedNodes.forEach(walker);
+    // Randomly select up to numClozes
+    const indices = Array.from(gapElements.keys());
+    const selectedIndices = selectRandom(indices, Math.min(this.numClozes, indices.length), this.seed);
+    this.clozedIndices = selectedIndices;
+    this.clozedTexts = selectedIndices.map(i => gapElements[i].textContent || '');
+    // Hide selected
+    gapElements.forEach((el, i) => {
+      if (selectedIndices.includes(i)) {
+        el.setAttribute('aria-label', 'gap');
+        el.setAttribute('tabindex', '0');
+        el.innerHTML = '____';
+        el.classList.add('gap');
+        el.classList.remove('revealed-gap');
+      } else {
+        el.removeAttribute('aria-label');
+        el.removeAttribute('tabindex');
+        el.classList.remove('gap', 'revealed-gap');
+      }
+    });
+    this.requestUpdate();
+  };
+
+  protected firstUpdated() {
+    const slot = this.shadowRoot?.querySelector('slot[name="cloze"]') as HTMLSlotElement;
+    if (slot) {
+      slot.addEventListener('slotchange', this.handleClozeSlotChange);
+      this.handleClozeSlotChange(); // Initial run
+    }
+  }
+
+  private handleReveal() {
+    this.isRevealed = true;
+    const slot = this.shadowRoot?.querySelector('slot[name="cloze"]') as HTMLSlotElement;
+    if (slot) {
+      const assignedNodes = slot.assignedNodes({ flatten: true });
+      const gapElements: Element[] = [];
+      const walker = (node: Node) => {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          const el = node as Element;
+          if (el.hasAttribute('data-is-gap')) {
+            gapElements.push(el);
+          }
+          el.childNodes.forEach(walker);
+        }
+      };
+      assignedNodes.forEach(walker);
+      this.clozedIndices.forEach((i) => {
+        const el = gapElements[i];
+        if (el) {
+          el.innerHTML = this.clozedTexts[this.clozedIndices.indexOf(i)];
+          el.classList.remove('gap');
+          el.classList.add('revealed-gap');
+          el.setAttribute('aria-label', 'revealed gap');
+        }
+      });
+    }
+    const timeToReveal = Date.now() - this.startTime;
+    this.dispatchEvent(new CustomEvent<ClozeEvent>('cloze-event', {
+      detail: {
+        type: 'reveal',
+        clozedTexts: this.clozedTexts,
+        clozedIndices: this.clozedIndices,
+        timeToReveal
+      }
+    }));
+  }
+
+  private handleRating(rating: 'wrong' | 'hard' | 'good' | 'easy') {
+    this.dispatchEvent(new CustomEvent<ClozeEvent>('cloze-event', {
+      detail: {
+        type: 'rating',
+        rating,
+        clozedTexts: this.clozedTexts,
+        clozedIndices: this.clozedIndices,
+        timeToReveal: Date.now() - this.startTime
+      }
+    }));
+  }
+
+  render() {
+    return html`
+      <div class="card" role="article">
+        <slot name="pre-cloze"></slot>
+        
+        <div class="cloze-text" role="text">
+          <slot name="cloze"></slot>
+        </div>
+        
+        <slot name="post-cloze"></slot>
+        
+        ${!this.isRevealed 
+          ? html`<div class="buttons">
+              <button 
+                class="primary" 
+                @click=${this.handleReveal}
+                aria-label="Reveal the hidden words">
+                Reveal
+              </button>
+            </div>`
+          : html`<div class="buttons">
+              <button 
+                class="rating" 
+                @click=${() => this.handleRating('wrong')}
+                aria-label="Rate as Wrong">
+                Wrong
+              </button>
+              <button 
+                class="rating" 
+                @click=${() => this.handleRating('hard')}
+                aria-label="Rate as Hard">
+                Hard
+              </button>
+              <button 
+                class="rating" 
+                @click=${() => this.handleRating('good')}
+                aria-label="Rate as Good">
+                Good
+              </button>
+              <button 
+                class="rating" 
+                @click=${() => this.handleRating('easy')}
+                aria-label="Rate as Easy">
+                Easy
+              </button>
+            </div>`
+        }
+      </div>
+    `;
+  }
+}
