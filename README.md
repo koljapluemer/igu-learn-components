@@ -31,35 +31,60 @@ A simple flashcard component with front and back content, plus self-evaluation b
 - Self-evaluation buttons (Wrong, Hard, Good, Easy)
 - Emits events for reveal and rating actions
 - Accessible and responsive design
+- Customizable via CSS custom properties
 
 #### Events
 - `reveal`: Emitted when the card is revealed
 - `rating`: Emitted when a rating button is clicked, with rating value in event detail
 
+#### Customization
+```css
+igu-flashcard {
+  /* Card */
+  --igu-card-bg: #ffffff;
+  --igu-card-border: 1px solid #e0e0e0;
+  --igu-card-radius: 8px;
+  --igu-card-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --igu-card-padding: 1.5rem;
+  --igu-card-spacing: 1rem;
+
+  /* Typography */
+  --igu-title-color: #2c3e50;
+  --igu-title-size: 1.25rem;
+  --igu-title-weight: 600;
+  --igu-content-color: #4a5568;
+  --igu-content-size: 1rem;
+
+  /* Buttons */
+  --igu-button-bg: #4a90e2;
+  --igu-button-color: #ffffff;
+  --igu-button-radius: 4px;
+  --igu-button-padding: 0.5rem 1rem;
+  --igu-button-wrong-bg: #e53e3e;
+  --igu-button-hard-bg: #ed8936;
+  --igu-button-good-bg: #4299e1;
+  --igu-button-easy-bg: #48bb78;
+}
+```
+
 ### igu-cloze-reveal
 
-A fill-in-the-blank component that randomly selects elements to hide in a text, based on the `data-is-gap` attribute. **Requires global CSS for cloze styles.**
+A fill-in-the-blank component that randomly selects elements to hide in a text, based on the `data-is-gap` attribute.
 
 #### Usage
 
 ```html
-<!-- Add these styles to your global stylesheet or <head> -->
+<!-- Required global styles for cloze gaps -->
+<!-- you can use different ones, but they have to exist -->
 <style>
   .cloze-hidden {
-    color: transparent;
-    text-shadow: 0 0 8px #888;
-    border-bottom: 2px solid #1976d2;
-    background: repeating-linear-gradient(90deg, #eee, #eee 6px, #fff 6px, #fff 12px);
+    filter: blur(4px);
     min-width: 2em;
-    cursor: pointer;
     user-select: none;
   }
   .cloze-revealed {
-    background-color: #e3f2fd;
-    padding: 0.1em 0.3em;
     border-radius: 3px;
     font-weight: bold;
-    color: inherit;
     border-bottom: 2px solid #1976d2;
   }
 </style>
@@ -98,6 +123,48 @@ A fill-in-the-blank component that randomly selects elements to hide in a text, 
 - Self-evaluation buttons
 - Accessible design with ARIA labels
 - Responsive layout
+- Customizable via CSS custom properties
 
-#### ⚠️ Note on Styling
-- Because of web component and Shadow DOM limitations, the cloze styles **must be included in your global stylesheet** (see above) for slotted content to be styled correctly.
+#### Customization
+The component can be customized in two ways:
+
+1. **Component Styling** (via CSS custom properties):
+```css
+igu-cloze-reveal {
+  /* Card */
+  --igu-card-bg: #ffffff;
+  --igu-card-border: 1px solid #e0e0e0;
+  --igu-card-radius: 8px;
+  --igu-card-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --igu-card-padding: 1.5rem;
+  --igu-card-spacing: 1rem;
+
+  /* Buttons */
+  --igu-button-bg: #4a90e2;
+  --igu-button-color: #ffffff;
+  --igu-button-radius: 4px;
+  --igu-button-padding: 0.5rem 1rem;
+  --igu-button-wrong-bg: #e53e3e;
+  --igu-button-hard-bg: #ed8936;
+  --igu-button-good-bg: #4299e1;
+  --igu-button-easy-bg: #48bb78;
+}
+```
+
+2. **Cloze Gap Styling** (via global CSS):
+```css
+.cloze-hidden {
+  color: transparent;
+  filter: blur(4px);
+  min-width: 2em;
+  user-select: none;
+}
+
+.cloze-revealed {
+  border-radius: 3px;
+  font-weight: bold;
+  border-bottom: 2px solid #1976d2;
+}
+```
+
+⚠️ **Important**: The cloze gap styles (`.cloze-hidden` and `.cloze-revealed`) must be defined in your global stylesheet because they affect slotted content outside the Shadow DOM. These styles cannot be customized via CSS custom properties.

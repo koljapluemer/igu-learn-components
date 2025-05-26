@@ -1,6 +1,5 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { theme } from '../styles/theme';
 import { selectRandom } from '../utils/random';
 
 interface ClozeEvent {
@@ -15,86 +14,90 @@ type ClozeState = 'clozed' | 'revealed';
 
 @customElement('igu-cloze-reveal')
 export class IguClozeReveal extends LitElement {
-  static styles = [
-    theme,
-    css`
-      :host {
-        display: block;
-        max-width: 600px;
-        margin: 0 auto;
-        padding: 1rem;
-      }
+  static styles = css`
+    :host {
+      display: block;
+      --igu-card-bg: #ffffff;
+      --igu-card-border: 1px solid #e0e0e0;
+      --igu-card-radius: 8px;
+      --igu-card-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      --igu-card-padding: 1.5rem;
+      --igu-card-spacing: 1rem;
 
-      /* Fallback styles when Bulma is not present */
-      :host(:not(.has-bulma)) .card {
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        padding: 1.5rem;
-        margin-bottom: 1rem;
-      }
+      --igu-button-bg: #4a90e2;
+      --igu-button-color: #ffffff;
+      --igu-button-radius: 4px;
+      --igu-button-padding: 0.5rem 1rem;
+      --igu-button-spacing: 0.5rem;
+      --igu-button-hover-opacity: 0.9;
 
-      :host(:not(.has-bulma)) .buttons {
-        display: flex;
-        gap: 0.5rem;
-        justify-content: center;
-        margin-top: 1rem;
-      }
+      --igu-button-wrong-bg: #e53e3e;
+      --igu-button-hard-bg: #ed8936;
+      --igu-button-good-bg: #4299e1;
+      --igu-button-easy-bg: #48bb78;
 
-      :host(:not(.has-bulma)) button {
-        padding: 0.5rem 1rem;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: 500;
-        transition: background-color 0.2s;
-      }
+      max-width: 600px;
+      margin: 0 auto;
+    }
 
-      :host(:not(.has-bulma)) button.primary {
-        background-color: var(--color-primary);
-        color: white;
-      }
+    .card {
+      background: var(--igu-card-bg);
+      border: var(--igu-card-border);
+      border-radius: var(--igu-card-radius);
+      box-shadow: var(--igu-card-shadow);
+      margin-bottom: var(--igu-card-spacing);
+    }
 
-      :host(:not(.has-bulma)) button.rating {
-        background-color: var(--color-secondary);
-        color: white;
-      }
+    .card-content {
+      padding: var(--igu-card-padding);
+    }
 
-      :host(:not(.has-bulma)) button:hover {
-        opacity: 0.9;
-      }
+    .card-footer {
+      padding: var(--igu-card-padding);
+      border-top: var(--igu-card-border);
+    }
 
-      .cloze-text {
-        font-size: 1.1rem;
-        line-height: 1.5;
-        margin: 1rem 0;
-      }
+    .buttons {
+      display: flex;
+      gap: var(--igu-button-spacing);
+      justify-content: center;
+      width: 100%;
+    }
 
-      .cloze-hidden {
-        color: transparent;
-        text-shadow: 0 0 8px #888;
-        border-bottom: 2px solid var(--color-primary);
-        background: repeating-linear-gradient(90deg, #eee, #eee 6px, #fff 6px, #fff 12px);
-        min-width: 2em;
-        cursor: pointer;
-        user-select: none;
-      }
+    button {
+      padding: var(--igu-button-padding);
+      border: none;
+      border-radius: var(--igu-button-radius);
+      cursor: pointer;
+      font-weight: 500;
+      transition: opacity 0.2s;
+      background: var(--igu-button-bg);
+      color: var(--igu-button-color);
+    }
 
-      .cloze-revealed {
-        background-color: var(--color-primary-light, #e3f2fd);
-        padding: 0.1em 0.3em;
-        border-radius: 3px;
-        font-weight: bold;
-        color: inherit;
-        border-bottom: 2px solid var(--color-primary);
-      }
-    `
-  ];
+    button:hover {
+      opacity: var(--igu-button-hover-opacity);
+    }
+
+    button.is-wrong {
+      background: var(--igu-button-wrong-bg);
+    }
+
+    button.is-hard {
+      background: var(--igu-button-hard-bg);
+    }
+
+    button.is-good {
+      background: var(--igu-button-good-bg);
+    }
+
+    button.is-easy {
+      background: var(--igu-button-easy-bg);
+    }
+  `;
 
   @property({ type: Number, attribute: 'num-clozes', reflect: true }) numClozes = 1;
   @property({ type: Number }) seed?: number;
-  @property({ type: String }) cardClass = 'card';
-  @property({ type: String }) buttonsClass = 'buttons';
 
   @state() private clozedIndices: number[] = [];
   @state() private clozedTexts: string[] = [];
@@ -183,45 +186,42 @@ export class IguClozeReveal extends LitElement {
 
   render() {
     return html`
-      <div class="${this.cardClass}" role="article">
+      <div class="card" role="article">
         <div class="card-content">
           <slot name="pre-cloze"></slot>
-          <div class="cloze-text" role="text">
-            <slot name="cloze"></slot>
-          </div>
+          <slot name="cloze"></slot>
           <slot name="post-cloze"></slot>
         </div>
         <div class="card-footer">
           ${this.state !== 'revealed' 
-            ? html`<div class="${this.buttonsClass}">
+            ? html`<div class="buttons">
                 <button 
-                  class="button is-primary" 
                   @click=${this.handleReveal}
                   aria-label="Reveal the hidden words">
                   Reveal
                 </button>
               </div>`
-            : html`<div class="${this.buttonsClass}">
+            : html`<div class="buttons">
                 <button 
-                  class="button is-danger" 
+                  class="is-wrong" 
                   @click=${() => this.handleRating('wrong')}
                   aria-label="Rate as Wrong">
                   Wrong
                 </button>
                 <button 
-                  class="button is-warning" 
+                  class="is-hard" 
                   @click=${() => this.handleRating('hard')}
                   aria-label="Rate as Hard">
                   Hard
                 </button>
                 <button 
-                  class="button is-info" 
+                  class="is-good" 
                   @click=${() => this.handleRating('good')}
                   aria-label="Rate as Good">
                   Good
                 </button>
                 <button 
-                  class="button is-success" 
+                  class="is-easy" 
                   @click=${() => this.handleRating('easy')}
                   aria-label="Rate as Easy">
                   Easy

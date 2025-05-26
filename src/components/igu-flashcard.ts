@@ -1,76 +1,105 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { theme } from '../styles/theme';
 
 @customElement('igu-flashcard')
 export class IguFlashcard extends LitElement {
-  static styles = [
-    theme,
-    css`
-      :host {
-        display: block;
-        max-width: 600px;
-        margin: 0 auto;
-        padding: 1rem;
-      }
+  static styles = css`
+    :host {
+      display: block;
+      --igu-card-bg: #ffffff;
+      --igu-card-border: 1px solid #e0e0e0;
+      --igu-card-radius: 8px;
+      --igu-card-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      --igu-card-padding: 1.5rem;
+      --igu-card-spacing: 1rem;
 
-      /* Fallback styles when Bulma is not present */
-      :host(:not(.has-bulma)) .card {
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        padding: 1.5rem;
-        margin-bottom: 1rem;
-      }
+      --igu-title-color: #2c3e50;
+      --igu-title-size: 1.25rem;
+      --igu-title-weight: 600;
+      --igu-title-spacing: 0.5rem;
 
-      :host(:not(.has-bulma)) .title {
-        font-size: 1.25rem;
-        font-weight: bold;
-        margin-bottom: 0.5rem;
-        color: var(--color-primary);
-      }
+      --igu-content-color: #4a5568;
+      --igu-content-size: 1rem;
+      --igu-content-spacing: 1rem;
 
-      :host(:not(.has-bulma)) .content {
-        margin-bottom: 1rem;
-      }
+      --igu-button-bg: #4a90e2;
+      --igu-button-color: #ffffff;
+      --igu-button-radius: 4px;
+      --igu-button-padding: 0.5rem 1rem;
+      --igu-button-spacing: 0.5rem;
+      --igu-button-hover-opacity: 0.9;
 
-      :host(:not(.has-bulma)) .buttons {
-        display: flex;
-        gap: 0.5rem;
-        justify-content: center;
-        margin-top: 1rem;
-      }
+      --igu-button-wrong-bg: #e53e3e;
+      --igu-button-hard-bg: #ed8936;
+      --igu-button-good-bg: #4299e1;
+      --igu-button-easy-bg: #48bb78;
 
-      :host(:not(.has-bulma)) button {
-        padding: 0.5rem 1rem;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: 500;
-        transition: background-color 0.2s;
-      }
+      max-width: 600px;
+      margin: 0 auto;
+    }
 
-      :host(:not(.has-bulma)) button.primary {
-        background-color: var(--color-primary);
-        color: white;
-      }
+    .card {
+      background: var(--igu-card-bg);
+      border: var(--igu-card-border);
+      border-radius: var(--igu-card-radius);
+      box-shadow: var(--igu-card-shadow);
+      padding: var(--igu-card-padding);
+      margin-bottom: var(--igu-card-spacing);
+    }
 
-      :host(:not(.has-bulma)) button.rating {
-        background-color: var(--color-secondary);
-        color: white;
-      }
+    .title {
+      color: var(--igu-title-color);
+      font-size: var(--igu-title-size);
+      font-weight: var(--igu-title-weight);
+      margin-bottom: var(--igu-title-spacing);
+    }
 
-      :host(:not(.has-bulma)) button:hover {
-        opacity: 0.9;
-      }
-    `
-  ];
+    .content {
+      color: var(--igu-content-color);
+      font-size: var(--igu-content-size);
+      margin-bottom: var(--igu-content-spacing);
+    }
+
+    .buttons {
+      display: flex;
+      gap: var(--igu-button-spacing);
+      justify-content: center;
+      margin-top: var(--igu-card-spacing);
+    }
+
+    button {
+      padding: var(--igu-button-padding);
+      border: none;
+      border-radius: var(--igu-button-radius);
+      cursor: pointer;
+      font-weight: 500;
+      transition: opacity 0.2s;
+      background: var(--igu-button-bg);
+      color: var(--igu-button-color);
+    }
+
+    button:hover {
+      opacity: var(--igu-button-hover-opacity);
+    }
+
+    button.is-wrong {
+      background: var(--igu-button-wrong-bg);
+    }
+
+    button.is-hard {
+      background: var(--igu-button-hard-bg);
+    }
+
+    button.is-good {
+      background: var(--igu-button-good-bg);
+    }
+
+    button.is-easy {
+      background: var(--igu-button-easy-bg);
+    }
+  `;
 
   @property({ type: Boolean }) isRevealed = false;
-  @property({ type: String }) cardClass = 'card';
-  @property({ type: String }) titleClass = 'title';
-  @property({ type: String }) contentClass = 'content';
-  @property({ type: String }) buttonsClass = 'buttons';
 
   private handleReveal() {
     this.isRevealed = true;
@@ -85,22 +114,22 @@ export class IguFlashcard extends LitElement {
 
   render() {
     return html`
-      <div class="${this.cardClass}">
-        <div class="${this.titleClass}"><slot name="front-title"></slot></div>
-        <div class="${this.contentClass}"><slot name="front-content"></slot></div>
+      <div class="card">
+        <div class="title"><slot name="front-title"></slot></div>
+        <div class="content"><slot name="front-content"></slot></div>
         
         ${!this.isRevealed 
-          ? html`<div class="${this.buttonsClass}">
-              <button class="button is-primary" @click=${this.handleReveal}>Reveal</button>
+          ? html`<div class="buttons">
+              <button @click=${this.handleReveal}>Reveal</button>
             </div>`
           : html`
-            <div class="${this.titleClass}"><slot name="back-title"></slot></div>
-            <div class="${this.contentClass}"><slot name="back-content"></slot></div>
-            <div class="${this.buttonsClass}">
-              <button class="button is-danger" @click=${() => this.handleRating('wrong')}>Wrong</button>
-              <button class="button is-warning" @click=${() => this.handleRating('hard')}>Hard</button>
-              <button class="button is-info" @click=${() => this.handleRating('good')}>Good</button>
-              <button class="button is-success" @click=${() => this.handleRating('easy')}>Easy</button>
+            <div class="title"><slot name="back-title"></slot></div>
+            <div class="content"><slot name="back-content"></slot></div>
+            <div class="buttons">
+              <button class="is-wrong" @click=${() => this.handleRating('wrong')}>Wrong</button>
+              <button class="is-hard" @click=${() => this.handleRating('hard')}>Hard</button>
+              <button class="is-good" @click=${() => this.handleRating('good')}>Good</button>
+              <button class="is-easy" @click=${() => this.handleRating('easy')}>Easy</button>
             </div>
           `
         }
