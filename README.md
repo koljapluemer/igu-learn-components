@@ -32,24 +32,44 @@ A simple flashcard component with front and back content, plus self-evaluation b
 
 ### igu-cloze-reveal
 
-A fill-in-the-blank component that randomly selects elements to hide in a text, based on the `data-is-gap` attribute.
+A fill-in-the-blank component that randomly selects elements to hide in a text, based on the `data-is-gap` attribute. **Requires global CSS for cloze styles.**
 
 #### Usage
 
 ```html
-<igu-cloze-reveal num-clozes="2">
+<!-- Add these styles to your global stylesheet or <head> -->
+<style>
+  .cloze-hidden {
+    color: transparent;
+    text-shadow: 0 0 8px #888;
+    border-bottom: 2px solid #1976d2;
+    background: repeating-linear-gradient(90deg, #eee, #eee 6px, #fff 6px, #fff 12px);
+    min-width: 2em;
+    cursor: pointer;
+    user-select: none;
+  }
+  .cloze-revealed {
+    background-color: #e3f2fd;
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+    font-weight: bold;
+    color: inherit;
+    border-bottom: 2px solid #1976d2;
+  }
+</style>
+
+<igu-cloze-reveal num-clozes="3">
   <div slot="pre-cloze">Complete the famous quote:</div>
   <span slot="cloze">
-    Whom the gods wish to <span data-is-gap>destroy</span>, they <span data-is-gap>give</span> unlimited <b data-is-gap>resources</b>
+    Whom the <span data-is-gap>gods</span> wish to <span data-is-gap>destroy</span>, they <span data-is-gap>give</span> <span data-is-gap>unlimited</span> <span data-is-gap>resources</span>
   </span>
   <div slot="post-cloze">Think about the meaning of this quote.</div>
 </igu-cloze-reveal>
 ```
 
 #### Properties
-- `numClozes`: Number of elements to randomly select for cloze (with `data-is-gap`)
+- `num-clozes`: Number of elements to randomly select for cloze (with `data-is-gap`)
 - `seed`: Optional seed for deterministic random selection
-- `isRevealed`: Internal state for reveal status
 
 #### Slots
 - `pre-cloze`: Optional content before the cloze text
@@ -72,3 +92,6 @@ A fill-in-the-blank component that randomly selects elements to hide in a text, 
 - Self-evaluation buttons
 - Accessible design with ARIA labels
 - Responsive layout
+
+#### ⚠️ Note on Styling
+- Because of web component and Shadow DOM limitations, the cloze styles **must be included in your global stylesheet** (see above) for slotted content to be styled correctly.

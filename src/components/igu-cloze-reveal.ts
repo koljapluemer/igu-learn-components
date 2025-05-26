@@ -85,7 +85,7 @@ export class IguClozeReveal extends LitElement {
     `
   ];
 
-  @property({ type: Number }) numClozes = 1;
+  @property({ type: Number, attribute: 'num-clozes', reflect: true }) numClozes = 1;
   @property({ type: Number }) seed?: number;
 
   @state() private clozedIndices: number[] = [];
@@ -117,7 +117,8 @@ export class IguClozeReveal extends LitElement {
     });
     // Randomly select clozes
     const indices = Array.from(allClozeElements.keys());
-    const selectedIndices = selectRandom(indices, Math.min(this.numClozes, indices.length), this.seed);
+    const numClozes = Number(this.numClozes);
+    const selectedIndices = selectRandom(indices, Math.min(numClozes, indices.length), this.seed);
     this.clozedIndices = selectedIndices;
     this.clozedTexts = selectedIndices.map(i => allClozeElements[i].textContent || '');
     // Hide selected
