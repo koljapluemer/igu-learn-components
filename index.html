@@ -5,6 +5,25 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Igu Learn Components Made With Lit</title>
+    <style>
+      .cloze-hidden {
+        color: transparent;
+        text-shadow: 0 0 8px #888;
+        border-bottom: 2px solid #1976d2;
+        background: repeating-linear-gradient(90deg, #eee, #eee 6px, #fff 6px, #fff 12px);
+        min-width: 2em;
+        cursor: pointer;
+        user-select: none;
+      }
+      .cloze-revealed {
+        background-color: #e3f2fd;
+        padding: 0.1em 0.3em;
+        border-radius: 3px;
+        font-weight: bold;
+        color: inherit;
+        border-bottom: 2px solid #1976d2;
+      }
+    </style>
 </head>
 <body>
     <igu-flashcard>
@@ -14,10 +33,10 @@
       <span slot="back-content"></span>
     </igu-flashcard>
 
-    <igu-cloze-reveal num-clozes="1">
+    <igu-cloze-reveal num-clozes="2">
       <div slot="pre-cloze">Complete the famous quote:</div>
       <span slot="cloze">
-        Whom the <span data-is-gap>gods</span> wish to <span data-is-gap>destroy</span>, they <span data-is-gap>give</span> <span data-is-gap>unlimited</span> <b data-is-gap>resources</b>
+        Whom the <span data-is-gap>gods</span> wish to <span data-is-gap>destroy</span>, they <span data-is-gap>give</span> <span data-is-gap>unlimited</span> <span data-is-gap>resources</span>
       </span>
       <div slot="post-cloze">Think about the meaning of this quote.</div>
     </igu-cloze-reveal>

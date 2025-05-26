@@ -11,6 +11,8 @@ interface ClozeEvent {
   timeToReveal?: number;
 }
 
+type ClozeState = 'clozed' | 'revealed';
+
 @customElement('igu-cloze-reveal')
 export class IguClozeReveal extends LitElement {
   static styles = [
@@ -22,7 +24,6 @@ export class IguClozeReveal extends LitElement {
         margin: 0 auto;
         padding: 1rem;
       }
-
       .card {
         background: white;
         border-radius: 8px;
@@ -30,35 +31,34 @@ export class IguClozeReveal extends LitElement {
         padding: 1.5rem;
         margin-bottom: 1rem;
       }
-
       .cloze-text {
         font-size: 1.1rem;
         line-height: 1.5;
         margin: 1rem 0;
       }
-
-      .gap {
-        display: inline-block;
-        min-width: 2em;
-        text-align: center;
+      .cloze-hidden {
+        color: transparent;
+        text-shadow: 0 0 8px #888;
         border-bottom: 2px solid var(--color-primary);
-        margin: 0 0.2em;
+        background: repeating-linear-gradient(90deg, #eee, #eee 6px, #fff 6px, #fff 12px);
+        min-width: 2em;
+        cursor: pointer;
+        user-select: none;
       }
-
-      .revealed-gap {
+      .cloze-revealed {
         background-color: var(--color-primary-light, #e3f2fd);
         padding: 0.1em 0.3em;
         border-radius: 3px;
         font-weight: bold;
+        color: inherit;
+        border-bottom: 2px solid var(--color-primary);
       }
-
       .buttons {
         display: flex;
         gap: 0.5rem;
         justify-content: center;
         margin-top: 1rem;
       }
-
       button {
         padding: 0.5rem 1rem;
         border: none;
@@ -67,21 +67,17 @@ export class IguClozeReveal extends LitElement {
         font-weight: 500;
         transition: background-color 0.2s;
       }
-
       button.primary {
         background-color: var(--color-primary);
         color: white;
       }
-
       button.rating {
         background-color: var(--color-secondary);
         color: white;
       }
-
       button:hover {
         opacity: 0.9;
       }
-
       button:focus {
         outline: 2px solid var(--color-primary);
         outline-offset: 2px;
@@ -91,84 +87,68 @@ export class IguClozeReveal extends LitElement {
 
   @property({ type: Number }) numClozes = 1;
   @property({ type: Number }) seed?: number;
-  @property({ type: Boolean }) isRevealed = false;
 
   @state() private clozedIndices: number[] = [];
   @state() private clozedTexts: string[] = [];
+  @state() private state: ClozeState = 'clozed';
   @state() private startTime = Date.now();
 
-  private handleClozeSlotChange = () => {
-    const slot = this.shadowRoot?.querySelector('slot[name="cloze"]') as HTMLSlotElement;
-    if (!slot) return;
-    const assignedNodes = slot.assignedNodes({ flatten: true });
-    // Find all elements with data-is-gap
-    const gapElements: Element[] = [];
-    const walker = (node: Node) => {
-      if (node.nodeType === Node.ELEMENT_NODE) {
-        const el = node as Element;
-        if (el.hasAttribute('data-is-gap')) {
-          gapElements.push(el);
-        }
-        el.childNodes.forEach(walker);
-      }
-    };
-    assignedNodes.forEach(walker);
-    // Randomly select up to numClozes
-    const indices = Array.from(gapElements.keys());
-    const selectedIndices = selectRandom(indices, Math.min(this.numClozes, indices.length), this.seed);
-    this.clozedIndices = selectedIndices;
-    this.clozedTexts = selectedIndices.map(i => gapElements[i].textContent || '');
-    // Hide selected
-    gapElements.forEach((el, i) => {
-      if (selectedIndices.includes(i)) {
-        el.setAttribute('aria-label', 'gap');
-        el.setAttribute('tabindex', '0');
-        el.innerHTML = '____';
-        el.classList.add('gap');
-        el.classList.remove('revealed-gap');
-      } else {
-        el.removeAttribute('aria-label');
-        el.removeAttribute('tabindex');
-        el.classList.remove('gap', 'revealed-gap');
-      }
-    });
-    this.requestUpdate();
-  };
-
   protected firstUpdated() {
+    this.applyCloze();
     const slot = this.shadowRoot?.querySelector('slot[name="cloze"]') as HTMLSlotElement;
     if (slot) {
-      slot.addEventListener('slotchange', this.handleClozeSlotChange);
-      this.handleClozeSlotChange(); // Initial run
+      slot.addEventListener('slotchange', () => this.applyCloze());
     }
   }
 
-  private handleReveal() {
-    this.isRevealed = true;
+  private applyCloze() {
     const slot = this.shadowRoot?.querySelector('slot[name="cloze"]') as HTMLSlotElement;
-    if (slot) {
-      const assignedNodes = slot.assignedNodes({ flatten: true });
-      const gapElements: Element[] = [];
-      const walker = (node: Node) => {
-        if (node.nodeType === Node.ELEMENT_NODE) {
-          const el = node as Element;
-          if (el.hasAttribute('data-is-gap')) {
-            gapElements.push(el);
-          }
-          el.childNodes.forEach(walker);
-        }
-      };
-      assignedNodes.forEach(walker);
-      this.clozedIndices.forEach((i) => {
-        const el = gapElements[i];
-        if (el) {
-          el.innerHTML = this.clozedTexts[this.clozedIndices.indexOf(i)];
-          el.classList.remove('gap');
-          el.classList.add('revealed-gap');
-          el.setAttribute('aria-label', 'revealed gap');
-        }
-      });
-    }
+    if (!slot) return;
+    const assignedNodes = slot.assignedNodes({ flatten: true });
+    let allClozeElements: HTMLElement[] = [];
+    assignedNodes.forEach(node => {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        allClozeElements.push(...Array.from((node as Element).querySelectorAll('[data-is-gap]')) as HTMLElement[]);
+      }
+    });
+    // Remove all cloze classes first
+    allClozeElements.forEach((el) => {
+      el.classList.remove('cloze-hidden', 'cloze-revealed');
+    });
+    // Randomly select clozes
+    const indices = Array.from(allClozeElements.keys());
+    const selectedIndices = selectRandom(indices, Math.min(this.numClozes, indices.length), this.seed);
+    this.clozedIndices = selectedIndices;
+    this.clozedTexts = selectedIndices.map(i => allClozeElements[i].textContent || '');
+    // Hide selected
+    selectedIndices.forEach(i => {
+      allClozeElements[i].classList.add('cloze-hidden');
+      allClozeElements[i].setAttribute('aria-label', 'gap');
+      allClozeElements[i].setAttribute('tabindex', '0');
+    });
+    this.state = 'clozed';
+    this.startTime = Date.now();
+  }
+
+  private handleReveal() {
+    const slot = this.shadowRoot?.querySelector('slot[name="cloze"]') as HTMLSlotElement;
+    if (!slot) return;
+    const assignedNodes = slot.assignedNodes({ flatten: true });
+    let allClozeElements: HTMLElement[] = [];
+    assignedNodes.forEach(node => {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        allClozeElements.push(...Array.from((node as Element).querySelectorAll('[data-is-gap]')) as HTMLElement[]);
+      }
+    });
+    this.clozedIndices.forEach(i => {
+      const el = allClozeElements[i];
+      if (el) {
+        el.classList.remove('cloze-hidden');
+        el.classList.add('cloze-revealed');
+        el.setAttribute('aria-label', 'revealed gap');
+      }
+    });
+    this.state = 'revealed';
     const timeToReveal = Date.now() - this.startTime;
     this.dispatchEvent(new CustomEvent<ClozeEvent>('cloze-event', {
       detail: {
@@ -196,14 +176,11 @@ export class IguClozeReveal extends LitElement {
     return html`
       <div class="card" role="article">
         <slot name="pre-cloze"></slot>
-        
         <div class="cloze-text" role="text">
           <slot name="cloze"></slot>
         </div>
-        
         <slot name="post-cloze"></slot>
-        
-        ${!this.isRevealed 
+        ${this.state !== 'revealed' 
           ? html`<div class="buttons">
               <button 
                 class="primary" 
