@@ -5,7 +5,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Igu Learn Components Made With Lit</title>
+    <!-- Add Bulma CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
     <style>
+      /* Cloze styles - these are required for the cloze component to work */
       .cloze-hidden {
         color: transparent;
         text-shadow: 0 0 8px #888;
@@ -23,23 +26,43 @@
         color: inherit;
         border-bottom: 2px solid #1976d2;
       }
+
+      /* Custom styles for the components */
+      .section {
+        padding: 2rem 1.5rem;
+      }
     </style>
 </head>
 <body>
-    <igu-flashcard>
-      <span slot="front-title">Sierra Leone</span>
-      <span slot="front-content">Capital?</span>
-      <span slot="back-title">Freetown</span>
-      <span slot="back-content"></span>
-    </igu-flashcard>
+    <section class="section">
+        <div class="container">
+            <h1 class="title">Learning Components Demo</h1>
+            <p class="subtitle">Interactive learning components with Bulma styling</p>
 
-    <igu-cloze-reveal num-clozes="3">
-      <div slot="pre-cloze">Complete the famous quote:</div>
-      <span slot="cloze">
-        Whom the <span data-is-gap>gods</span> wish to <span data-is-gap>destroy</span>, they <span data-is-gap>give</span> <span data-is-gap>unlimited</span> <span data-is-gap>resources</span>
-      </span>
-      <div slot="post-cloze">Think about the meaning of this quote.</div>
-    </igu-cloze-reveal>
+            <div class="columns">
+                <div class="column">
+                    <igu-flashcard>
+                        <span slot="front-title">Sierra Leone</span>
+                        <span slot="front-content">Capital?</span>
+                        <span slot="back-title">Freetown</span>
+                        <span slot="back-content"></span>
+                    </igu-flashcard>
+                </div>
+            </div>
+
+            <div class="columns mt-5">
+                <div class="column">
+                    <igu-cloze-reveal num-clozes="3">
+                        <div slot="pre-cloze" class="subtitle">Complete the famous quote:</div>
+                        <span slot="cloze">
+                            Whom the <span data-is-gap>gods</span> wish to <span data-is-gap>destroy</span>, they <span data-is-gap>give</span> <span data-is-gap>unlimited</span> <span data-is-gap>resources</span>
+                        </span>
+                        <div slot="post-cloze" class="subtitle">Think about the meaning of this quote.</div>
+                    </igu-cloze-reveal>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <script type="module" src="/src/index.ts"></script>
 </body>

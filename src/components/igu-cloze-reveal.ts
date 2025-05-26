@@ -24,18 +24,52 @@ export class IguClozeReveal extends LitElement {
         margin: 0 auto;
         padding: 1rem;
       }
-      .card {
+
+      /* Fallback styles when Bulma is not present */
+      :host(:not(.has-bulma)) .card {
         background: white;
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         padding: 1.5rem;
         margin-bottom: 1rem;
       }
+
+      :host(:not(.has-bulma)) .buttons {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        margin-top: 1rem;
+      }
+
+      :host(:not(.has-bulma)) button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.2s;
+      }
+
+      :host(:not(.has-bulma)) button.primary {
+        background-color: var(--color-primary);
+        color: white;
+      }
+
+      :host(:not(.has-bulma)) button.rating {
+        background-color: var(--color-secondary);
+        color: white;
+      }
+
+      :host(:not(.has-bulma)) button:hover {
+        opacity: 0.9;
+      }
+
       .cloze-text {
         font-size: 1.1rem;
         line-height: 1.5;
         margin: 1rem 0;
       }
+
       .cloze-hidden {
         color: transparent;
         text-shadow: 0 0 8px #888;
@@ -45,6 +79,7 @@ export class IguClozeReveal extends LitElement {
         cursor: pointer;
         user-select: none;
       }
+
       .cloze-revealed {
         background-color: var(--color-primary-light, #e3f2fd);
         padding: 0.1em 0.3em;
@@ -53,40 +88,13 @@ export class IguClozeReveal extends LitElement {
         color: inherit;
         border-bottom: 2px solid var(--color-primary);
       }
-      .buttons {
-        display: flex;
-        gap: 0.5rem;
-        justify-content: center;
-        margin-top: 1rem;
-      }
-      button {
-        padding: 0.5rem 1rem;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: 500;
-        transition: background-color 0.2s;
-      }
-      button.primary {
-        background-color: var(--color-primary);
-        color: white;
-      }
-      button.rating {
-        background-color: var(--color-secondary);
-        color: white;
-      }
-      button:hover {
-        opacity: 0.9;
-      }
-      button:focus {
-        outline: 2px solid var(--color-primary);
-        outline-offset: 2px;
-      }
     `
   ];
 
   @property({ type: Number, attribute: 'num-clozes', reflect: true }) numClozes = 1;
   @property({ type: Number }) seed?: number;
+  @property({ type: String }) cardClass = 'card';
+  @property({ type: String }) buttonsClass = 'buttons';
 
   @state() private clozedIndices: number[] = [];
   @state() private clozedTexts: string[] = [];
@@ -175,48 +183,52 @@ export class IguClozeReveal extends LitElement {
 
   render() {
     return html`
-      <div class="card" role="article">
-        <slot name="pre-cloze"></slot>
-        <div class="cloze-text" role="text">
-          <slot name="cloze"></slot>
+      <div class="${this.cardClass}" role="article">
+        <div class="card-content">
+          <slot name="pre-cloze"></slot>
+          <div class="cloze-text" role="text">
+            <slot name="cloze"></slot>
+          </div>
+          <slot name="post-cloze"></slot>
         </div>
-        <slot name="post-cloze"></slot>
-        ${this.state !== 'revealed' 
-          ? html`<div class="buttons">
-              <button 
-                class="primary" 
-                @click=${this.handleReveal}
-                aria-label="Reveal the hidden words">
-                Reveal
-              </button>
-            </div>`
-          : html`<div class="buttons">
-              <button 
-                class="rating" 
-                @click=${() => this.handleRating('wrong')}
-                aria-label="Rate as Wrong">
-                Wrong
-              </button>
-              <button 
-                class="rating" 
-                @click=${() => this.handleRating('hard')}
-                aria-label="Rate as Hard">
-                Hard
-              </button>
-              <button 
-                class="rating" 
-                @click=${() => this.handleRating('good')}
-                aria-label="Rate as Good">
-                Good
-              </button>
-              <button 
-                class="rating" 
-                @click=${() => this.handleRating('easy')}
-                aria-label="Rate as Easy">
-                Easy
-              </button>
-            </div>`
-        }
+        <div class="card-footer">
+          ${this.state !== 'revealed' 
+            ? html`<div class="${this.buttonsClass}">
+                <button 
+                  class="button is-primary" 
+                  @click=${this.handleReveal}
+                  aria-label="Reveal the hidden words">
+                  Reveal
+                </button>
+              </div>`
+            : html`<div class="${this.buttonsClass}">
+                <button 
+                  class="button is-danger" 
+                  @click=${() => this.handleRating('wrong')}
+                  aria-label="Rate as Wrong">
+                  Wrong
+                </button>
+                <button 
+                  class="button is-warning" 
+                  @click=${() => this.handleRating('hard')}
+                  aria-label="Rate as Hard">
+                  Hard
+                </button>
+                <button 
+                  class="button is-info" 
+                  @click=${() => this.handleRating('good')}
+                  aria-label="Rate as Good">
+                  Good
+                </button>
+                <button 
+                  class="button is-success" 
+                  @click=${() => this.handleRating('easy')}
+                  aria-label="Rate as Easy">
+                  Easy
+                </button>
+              </div>`
+          }
+        </div>
       </div>
     `;
   }

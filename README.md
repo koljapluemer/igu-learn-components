@@ -2,6 +2,12 @@
 
 A collection of web components for teaching, learning, spaced repetition and ITS
 
+## Use
+
+- (`npm i`)
+- `npm run rev` for dev server with demo
+- `npx vite build` for building (= needed to use components elsewhere)
+
 ## Components
 
 ### igu-flashcard
