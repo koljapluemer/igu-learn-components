@@ -1,0 +1,1 @@
+export { IguFlashcard } from './components/igu-flashcard';

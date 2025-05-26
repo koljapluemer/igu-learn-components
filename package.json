@@ -1,0 +1,24 @@
+{
+  "name": "igu-learn-components",
+  "version": "1.0.0",
+  "main": "./dist/igu-learn-components.umd.js",
+  "module": "./dist/igu-learn-components.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/igu-learn-components.es.js",
+      "require": "./dist/igu-learn-components.umd.js"
+    }
+  },
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "lit": "^3.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.7",
+    "vite": "^5.4.9"
+  }
+}
