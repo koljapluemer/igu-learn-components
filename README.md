@@ -1,3 +1,6 @@
+> [!NOTE]  
+> *Archived Prototype. I will try to abstract learning apps into higher level components when I build 10 more of them.*
+
 # igu-learn-components
 
 A collection of web components for teaching, learning, spaced repetition and ITS
